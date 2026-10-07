@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Mia Task Capture",
+  "version": "1.0.0",
+  "description": "Send tasks to Mia (Firestore) from any page.",
+  "action": {
+    "default_title": "Send to Mia Tasks",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["storage", "activeTab", "contextMenus", "scripting"],
+  "host_permissions": [
+    "https://identitytoolkit.googleapis.com/*",
+    "https://firestore.googleapis.com/*"
+  ]
+}

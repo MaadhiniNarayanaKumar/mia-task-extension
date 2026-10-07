@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mia Tasks</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="header">
+        <div class="brand">
+          <span class="logo" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M9 11.5 11 13.5 15.5 8.5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <rect
+                x="4"
+                y="4"
+                width="16"
+                height="16"
+                rx="3"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+            </svg>
+          </span>
+          <div>
+            <h1>Mia Tasks</h1>
+            <ol class="steps" id="steps">
+              <li class="active" data-step="1">Paste</li>
+              <li data-step="2">Review</li>
+              <li data-step="3">Send</li>
+            </ol>
+          </div>
+        </div>
+      </header>
+
+      <div class="scroll">
+        <section class="paste-block" id="pasteBlock">
+          <label class="field-label" for="paste">Paste task</label>
+          <textarea
+            id="paste"
+            rows="2"
+            placeholder="Buy milk tomorrow · email the professor by Friday, high priority"
+          ></textarea>
+        </section>
+
+        <button type="button" class="paste-collapsed" id="pasteCollapsed" hidden>
+          Pasted task <span>(tap to edit)</span>
+        </button>
+
+        <form id="form" class="form">
+          <div class="field">
+            <label class="field-label" for="title">Title</label>
+            <textarea
+              id="title"
+              class="title-area"
+              rows="1"
+              required
+              placeholder="Short task title"
+            ></textarea>
+          </div>
+
+          <div class="split-row">
+            <div class="field grow">
+              <label class="field-label" for="due">Due</label>
+              <input id="due" type="date" required />
+            </div>
+            <div class="field priority-field">
+              <label class="field-label" for="priority">Priority</label>
+              <div class="select-wrap">
+                <span class="dot" id="priorityDot" style="background: #d97706"></span>
+                <select id="priority">
+                  <option value="low" data-color="#16a34a">Low</option>
+                  <option value="medium" data-color="#d97706" selected>Medium</option>
+                  <option value="high" data-color="#dc2626">High</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <footer class="footer">
+        <p id="status" class="status" hidden></p>
+        <button id="submit" type="submit" form="form" class="btn primary send">
+          Send to Mia
+        </button>
+      </footer>
+    </div>
+
+    <div id="toast" class="toast" hidden>Sent to Mia ✓</div>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>
