@@ -1,4 +1,6 @@
-import { createTask, defaultDue } from './firestore.js';
+import { classifyTask, DEFAULT_CATEGORIES, effectivePriority } from './classify_task.js';
+import { CONFIG } from './config.js';
+import { createTask, defaultDue, listCategories } from './firestore.js';
 import { parseTaskText } from './parse_task.js';
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -14,13 +16,26 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     const selected = (info.selectionText || '').trim();
     if (!selected) return;
     const parsed = parseTaskText(selected);
+    const dueDate = parsed?.dueDate || defaultDue();
+    let categories = [];
+    try {
+      categories = await listCategories();
+    } catch (_) {}
+    if (!categories.length) categories = DEFAULT_CATEGORIES;
+    const classified = await classifyTask(
+      parsed?.rawText || selected,
+      categories,
+      CONFIG.geminiApiKey,
+    );
 
     await createTask({
-      title: parsed?.title || selected.slice(0, 80),
-      rawText: selected,
-      priority: parsed?.priority || 'medium',
-      dueDate: parsed?.dueDate || defaultDue(),
+      title: classified.title || parsed?.title || selected.slice(0, 80),
+      rawText: parsed?.rawText || selected,
+      priority: effectivePriority(parsed?.priority || 'medium', dueDate),
+      dueDate,
       pageUrl: info.pageUrl || tab?.url || '',
+      categoryId: classified.categoryId,
+      categoryName: classified.categoryName || '',
     });
 
     if (tab?.id != null) {

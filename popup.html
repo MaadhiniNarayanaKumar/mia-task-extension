@@ -67,6 +67,19 @@
             ></textarea>
           </div>
 
+          <div class="field">
+            <label class="field-label" for="category">Category</label>
+            <select id="category">
+              <option value="">Auto</option>
+            </select>
+          </div>
+
+          <div class="chips" id="dueChips">
+            <button type="button" data-offset="0">Today</button>
+            <button type="button" data-offset="1">Tomorrow</button>
+            <button type="button" data-offset="7">Next week</button>
+          </div>
+
           <div class="split-row">
             <div class="field grow">
               <label class="field-label" for="due">Due</label>
@@ -83,6 +96,12 @@
                 </select>
               </div>
             </div>
+          </div>
+          <p id="priorityNote" class="hint" hidden></p>
+
+          <div class="field">
+            <label class="field-label" for="notes">Notes</label>
+            <textarea id="notes" rows="1" placeholder="Optional notes…"></textarea>
           </div>
         </form>
       </div>

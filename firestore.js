@@ -6,10 +6,10 @@ function authUrl(path) {
   return `https://identitytoolkit.googleapis.com/v1/${path}?key=${API_KEY}`;
 }
 
-function firestoreDocUrl(uid) {
+function userCollectionUrl(uid, collection) {
   return (
     `https://firestore.googleapis.com/v1/projects/${CONFIG.projectId}` +
-    `/databases/(default)/documents/users/${encodeURIComponent(uid)}/tasks`
+    `/databases/(default)/documents/users/${encodeURIComponent(uid)}/${collection}`
   );
 }
 
@@ -113,9 +113,46 @@ export async function getIdToken({ forceRefresh = false } = {}) {
 }
 
 /**
+ * users/{uid}/categories — same docs the Flutter category list reads.
+ */
+export async function listCategories() {
+  const uid = CONFIG.uid || 'local-guest';
+  let token = await getIdToken();
+  const url = `${userCollectionUrl(uid, 'categories')}?pageSize=100`;
+
+  let res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status === 401) {
+    token = await getIdToken({ forceRefresh: true });
+    res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
+  if (res.status === 404) return [];
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Could not load categories (${res.status}): ${text}`);
+  }
+
+  const data = await res.json();
+  return (data.documents || [])
+    .map((doc) => {
+      const parts = String(doc.name || '').split('/');
+      const fields = doc.fields || {};
+      return {
+        id: decodeURIComponent(parts[parts.length - 1] || ''),
+        name: fields.name?.stringValue || '',
+        emoji: fields.emoji?.stringValue || '',
+      };
+    })
+    .filter((category) => category.name);
+}
+
+/**
  * Create a task under users/{uid}/tasks.
- * Shape matches Flutter TaskRepository.createTask, plus source=extension.
- * Status stays pendingEnrichment so the app classifies the category.
+ * Shape matches Flutter TaskRepository.createTask after enrichment:
+ * category fields when known, status enriched, due time end of day.
  */
 export async function createTask({
   title,
@@ -123,25 +160,29 @@ export async function createTask({
   priority = 'medium',
   dueDate,
   pageUrl = '',
+  categoryId = '',
+  categoryName = '',
 }) {
   const uid = CONFIG.uid || 'local-guest';
   let token = await getIdToken();
-  const due = dueDate ? new Date(dueDate) : defaultDue();
+  const due = atEndOfDay(dueDate ? new Date(dueDate) : defaultDue());
 
-  const body = {
-    fields: {
-      rawText: str((rawText || title || '').trim()),
-      title: str((title || rawText || 'Untitled').trim()),
-      priority: str(priority || 'medium'),
-      status: str('pendingEnrichment'),
-      createdAt: ts(new Date()),
-      dueDate: ts(due),
-      source: str('extension'),
-      pageUrl: str(pageUrl || ''),
-    },
+  const fields = {
+    rawText: str((rawText || title || '').trim()),
+    title: str((title || rawText || 'Untitled').trim()),
+    priority: str(priority || 'medium'),
+    status: str('enriched'),
+    createdAt: ts(new Date()),
+    dueDate: ts(due),
+    source: str('extension'),
+    pageUrl: str(pageUrl || ''),
   };
+  if (categoryId) fields.categoryId = str(categoryId);
+  if (categoryName) fields.categoryName = str(categoryName);
 
-  let res = await fetch(firestoreDocUrl(uid), {
+  const body = { fields };
+
+  let res = await fetch(userCollectionUrl(uid, 'tasks'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -152,7 +193,7 @@ export async function createTask({
 
   if (res.status === 401) {
     token = await getIdToken({ forceRefresh: true });
-    res = await fetch(firestoreDocUrl(uid), {
+    res = await fetch(userCollectionUrl(uid, 'tasks'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -170,7 +211,13 @@ export async function createTask({
 }
 
 export function defaultDue(now = new Date()) {
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  return atEndOfDay(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
+}
+
+/** Due dates are the end of that calendar day, 11:59 PM local. */
+export function atEndOfDay(date) {
+  const d = new Date(date);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 0, 0);
 }
 
 export function pad2(n) {
@@ -183,5 +230,5 @@ export function toDateValue(date) {
 
 export function fromDateValue(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number);
-  return new Date(y, m - 1, d);
+  return atEndOfDay(new Date(y, m - 1, d));
 }

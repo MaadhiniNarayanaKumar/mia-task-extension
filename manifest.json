@@ -14,6 +14,7 @@
   "permissions": ["storage", "activeTab", "contextMenus", "scripting"],
   "host_permissions": [
     "https://identitytoolkit.googleapis.com/*",
-    "https://firestore.googleapis.com/*"
+    "https://firestore.googleapis.com/*",
+    "https://generativelanguage.googleapis.com/*"
   ]
 }

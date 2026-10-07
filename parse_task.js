@@ -1,20 +1,22 @@
 /**
  * Pull a title, due date, and priority out of freeform task text.
- * Category stays empty so the Flutter app can enrich it.
+ * Category is classified separately against the user's Firestore categories.
  *
  * @param {string} raw
  * @param {Date} [now]
  */
 export function parseTaskText(raw, now = new Date()) {
-  const text = (raw || '').trim();
+  const original = (raw || '').trim();
+  if (!original) return null;
+  const text = cleanCommand(original);
   if (!text) return null;
 
   const guessed = new Set(['title']);
-  let working = text.replace(/\s+/g, ' ').trim();
+  let working = text;
 
   let priority = 'medium';
-  const highRe = /\b(?:urgent|asap|high(?:\s+priority)?|important)\b|!{2,}/gi;
-  const lowRe = /\b(?:low(?:\s+priority)?|whenever|someday|no rush)\b/gi;
+  const highRe = /\b(?:urgent|asap|high priority|important)\b/gi;
+  const lowRe = /\b(?:low priority|whenever)\b/gi;
   if (highRe.test(working)) {
     priority = 'high';
     guessed.add('priority');
@@ -166,6 +168,17 @@ function monthDay(now, monthOrName, day, yearText, numericMonth = false) {
     if (date < today) date = new Date(year + 1, month - 1, day);
   }
   return date;
+}
+
+function cleanCommand(text) {
+  let result = text.replace(/\s+/g, ' ').trim();
+  result = result.replace(/^(?:hey|hi|hay)\s+mi(?:a|ya|er|eea)\b[,.!:;\-\s]*/i, '').trim();
+  result = result.replace(/^(?:can you |could you |please |will you )+/i, '').trim();
+  result = result.replace(
+    /^(?:add (?:a |the )?tasks? |add |create (?:a |the )?tasks? |remind me to )/i,
+    '',
+  ).trim();
+  return result;
 }
 
 function startOfDay(date) {

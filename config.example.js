@@ -22,4 +22,10 @@ export const CONFIG = {
    */
   email: '',
   password: '',
+
+  /**
+   * Optional. Same Gemini key the Flutter app uses for title + category.
+   * Leave empty to classify with the app's keyword rules only.
+   */
+  geminiApiKey: '',
 };
