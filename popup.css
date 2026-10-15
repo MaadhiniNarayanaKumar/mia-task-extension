@@ -70,19 +70,11 @@ body {
 }
 
 .logo {
-  width: 26px;
-  height: 26px;
-  border-radius: 7px;
-  background: var(--primary);
-  color: #fff;
-  display: grid;
-  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: contain;
   flex-shrink: 0;
-}
-
-.logo svg {
-  width: 14px;
-  height: 14px;
 }
 
 .header h1 {

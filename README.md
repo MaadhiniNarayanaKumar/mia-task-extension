@@ -40,6 +40,14 @@ Guessed fields, matching the app:
 
 If `geminiApiKey` is set in `config.js`, Auto classification uses the same Gemini prompt as the app, then falls back to the keyword rules.
 
+## In the app
+
+After **Send to Mia**, the task is on the Mia task list (Home → Mia, or Quick actions → Voice / Add task).
+
+- Open tasks are grouped by due date. There is no “X of Y tasks completed” progress card.
+- When nothing is open, the screen says **All done** with a check icon.
+- Category chips on that screen still filter the list. Categories are edited from Quick actions → Categories.
+
 ## Notes
 
 - Writes go to `users/{uid}/tasks` (default `local-guest`) with `status: enriched`
